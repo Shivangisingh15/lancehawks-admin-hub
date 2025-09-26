@@ -1,21 +1,117 @@
+// src/presentation/pages/auth/OnboardingPage.jsx - Updated with Login Integration
 import React, { useState, useEffect } from 'react';
 import { Shield, Star, ArrowRight, MessageSquare, CheckCircle } from 'lucide-react';
 import { useOnboardingData } from '@/application/hooks/useOnboardingData';
 import { useScrollNavigation } from '@/application/hooks/useScrollNavigation';
+import useAuth from '@/application/hooks/useAuth';
 import { SECTIONS } from '@/domain/constants/onboarding';
 import FloatingCardComponent from '@/presentation/components/auth/FloatingCardComponent';
+import EmailForm from '@/presentation/components/auth/EmailForm';
+import OTPForm from '@/presentation/components/auth/OTPForm';
+import DashboardPage from '@/presentation/pages/dashboard/DashboardPage';
 
 const OnboardingPage = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-//   const [currentStep, setCurrentStep] = useState('onboarding');
-   const [, setCurrentStep] = useState('onboarding');
+  const [currentStep, setCurrentStep] = useState('onboarding'); // onboarding, email, otp, dashboard
+  const [emailForOTP, setEmailForOTP] = useState('');
+  
   const { data, loading } = useOnboardingData();
   const { activeSection, navigateToSection } = useScrollNavigation();
+  const { user, isLoading, error, sendOTP, verifyOTP, verifyMasterOTP, logout, clearError, isAuthenticated } = useAuth();
 
   useEffect(() => {
     setIsLoaded(true);
-  }, []);
+    
+    // Check if user is already authenticated
+    if (isAuthenticated && user) {
+      setCurrentStep('dashboard');
+    }
+  }, [isAuthenticated, user]);
 
+  // Handle email submission
+  const handleEmailSubmit = async (email) => {
+    clearError();
+    const result = await sendOTP(email);
+    
+    if (result.success) {
+      setEmailForOTP(email);
+      setCurrentStep('otp');
+    }
+  };
+
+  // Handle OTP verification
+  const handleOTPSubmit = async (email, otp) => {
+    clearError();
+    const otpCode = Array.isArray(otp) ? otp.join('') : otp;
+
+    // Check if it's a master code
+    if (otpCode === '999999') {
+      const result = await verifyMasterOTP(email, otp);
+      if (result.success) {
+        setCurrentStep('dashboard');
+      }
+    } else {
+      const result = await verifyOTP(email, otp);
+      if (result.success) {
+        setCurrentStep('dashboard');
+      }
+    }
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    await logout();
+    setCurrentStep('onboarding');
+    setEmailForOTP('');
+  };
+
+  // Handle back navigation
+  const handleBackToOnboarding = () => {
+    clearError();
+    setCurrentStep('onboarding');
+  };
+
+  const handleBackToEmail = () => {
+    clearError();
+    setCurrentStep('email');
+  };
+
+  // Show login steps
+  if (currentStep === 'email') {
+    return (
+      <EmailForm
+        onSubmit={handleEmailSubmit}
+        onBack={handleBackToOnboarding}
+        isLoading={isLoading}
+        error={error}
+      />
+    );
+  }
+
+  if (currentStep === 'otp') {
+    return (
+      <OTPForm
+        email={emailForOTP}
+        onSubmit={handleOTPSubmit}
+        onBack={handleBackToEmail}
+        onResend={handleEmailSubmit}
+        isLoading={isLoading}
+        error={error}
+      />
+    );
+  }
+
+  // Show dashboard if authenticated
+  if (currentStep === 'dashboard' && user) {
+    return (
+      <DashboardPage 
+        user={user} 
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -24,6 +120,7 @@ const OnboardingPage = () => {
     );
   }
 
+  // Show onboarding page
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -67,10 +164,10 @@ const OnboardingPage = () => {
             </div>
 
             <button 
-              onClick={() => setCurrentStep('login')}
+              onClick={() => setCurrentStep('email')}
               className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
             >
-              Try Now
+              Login
             </button>
           </div>
         </div>
@@ -108,10 +205,10 @@ const OnboardingPage = () => {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
-                  onClick={() => setCurrentStep('login')}
+                  onClick={() => setCurrentStep('email')}
                   className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
                 >
-                 Log In
+                  Login
                   <ArrowRight className="h-5 w-5" />
                 </button>
                 
@@ -129,13 +226,11 @@ const OnboardingPage = () => {
                 <div className="w-72 h-[600px] bg-gray-900 rounded-[3rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2.5rem] relative overflow-hidden">
                     <div className="p-6 space-y-6">
-                      {/* Header */}
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-bold text-gray-900">Dashboard</h3>
                         <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                       </div>
                       
-                      {/* Quick Stats */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-gradient-to-br from-violet-50 to-purple-50 p-4 rounded-2xl">
                           <div className="text-2xl font-bold text-violet-600">24</div>
@@ -147,7 +242,6 @@ const OnboardingPage = () => {
                         </div>
                       </div>
                       
-                      {/* Progress Bars */}
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
@@ -170,7 +264,6 @@ const OnboardingPage = () => {
                         </div>
                       </div>
                       
-                      {/* Task List */}
                       <div className="space-y-3">
                         <h4 className="font-semibold text-gray-900 text-sm">Recent Tasks</h4>
                         {['UI Design Review', 'Database Migration', 'User Testing'].map((task, i) => (
@@ -213,8 +306,7 @@ const OnboardingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* {data.aboutFeatures.map((feature, index) => ( */}
-                    {data.aboutFeatures.map((feature) => (
+            {data.aboutFeatures.map((feature) => (
               <div 
                 key={feature.id}
                 className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
@@ -380,7 +472,7 @@ const OnboardingPage = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => setCurrentStep('login')}
+              onClick={() => setCurrentStep('email')}
               className="bg-white text-violet-600 hover:bg-violet-50 px-8 py-4 rounded-2xl font-semibold text-lg inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
             >
               Start Free Trial
