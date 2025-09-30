@@ -2,8 +2,8 @@
 import { User } from '../../domain/entities/User';
 
 export class AuthService {
-  // Use the proxy path instead of full URL
-  static BASE_URL = '/api/v1';
+  // Use the production backend URL
+  static BASE_URL = 'https://projectmanagement-backend.vercel.app/api/v1';
   static TIMEOUT = 15000;
 
   static async sendOTP(email) {
