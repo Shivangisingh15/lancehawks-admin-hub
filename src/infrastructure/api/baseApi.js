@@ -1,6 +1,6 @@
 // src/infrastructure/api/baseApi.js
 export class BaseApi {
-  static BASE_URL = 'http://localhost:5000/api/v1';
+  static BASE_URL = 'https://projectmanagement-backend.vercel.app/api/v1';
   static TIMEOUT = 15000;
 
   static getAuthHeaders() {
