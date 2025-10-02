@@ -98,7 +98,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreate, isLoading }) => {
           {/* Profile Picture URL */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Picture URL (Optional)
+              Profile Picture URL 
             </label>
             <div className="relative">
               <Image className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -136,8 +136,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreate, isLoading }) => {
           {/* Info Box */}
           <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
             <p className="text-sm text-violet-700">
-              The user will receive an email with instructions to set up their account.
-              Employee ID will be auto-generated.
+              Welcoming you to the team! 
             </p>
           </div>
 

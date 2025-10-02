@@ -1,6 +1,6 @@
 // src/presentation/pages/dashboard/UsersPage.jsx
 import React, { useState } from 'react';
-import { Users, Search, Filter, Plus, RefreshCw, TrendingUp, UserCheck, UserX } from 'lucide-react';
+import { Users, Search, Filter, Plus, RefreshCw, UserCheck, UserX } from 'lucide-react';
 import useUsers from '../../../application/hooks/useUsers';
 import UserCard from "../../../presentation/components/users/UserCard";
 import CreateUserModal from "../../../presentation/components/users/CreateUserModal";
@@ -101,12 +101,14 @@ const UsersPage = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Total Users</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.total_users || 0}</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {(stats.active_users || 0) + (stats.inactive_users || 0)}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <Users className="h-6 w-6 text-white" />
@@ -134,18 +136,6 @@ const UsersPage = () => {
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
                   <UserX className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Admin Created</p>
-                  <p className="text-3xl font-bold text-purple-600">{stats.admin_created_users || 0}</p>
-                </div>
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-white" />
                 </div>
               </div>
             </div>
