@@ -8,11 +8,29 @@ const useAuth = () => {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication status on mount
+  // Check authentication status and restore user on mount
   useEffect(() => {
     const checkAuth = () => {
       const authStatus = AuthService.isAuthenticated();
       setIsAuthenticated(authStatus);
+
+      // Restore user from localStorage if authenticated
+      if (authStatus) {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+          } catch (error) {
+            console.error('Failed to parse stored user:', error);
+            // Clear invalid data
+            localStorage.removeItem('user');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            setIsAuthenticated(false);
+          }
+        }
+      }
     };
     checkAuth();
   }, []);
@@ -85,10 +103,12 @@ const useAuth = () => {
     try {
       const otpCode = Array.isArray(otp) ? otp.join('') : otp;
       const result = await AuthService.verifyOTP(email, otpCode);
-      
+
       if (result.success && result.user) {
         setUser(result.user);
         setIsAuthenticated(true);
+        // Persist user to localStorage
+        localStorage.setItem('user', JSON.stringify(result.user));
       } else {
         setError(result.message);
       }
@@ -105,12 +125,14 @@ const useAuth = () => {
 
   const logout = useCallback(async () => {
     setIsLoading(true);
-    
+
     try {
       await AuthService.logout();
       setUser(null);
       setError('');
       setIsAuthenticated(false);
+      // Remove user from localStorage
+      localStorage.removeItem('user');
       return { success: true };
     } catch {
       return { success: false, error: 'Logout failed' };
@@ -142,6 +164,8 @@ const useAuth = () => {
       if (result.success && result.user) {
         setUser(result.user);
         setIsAuthenticated(true);
+        // Persist user to localStorage
+        localStorage.setItem('user', JSON.stringify(result.user));
       } else {
         setError(result.message);
       }
